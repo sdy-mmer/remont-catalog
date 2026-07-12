@@ -7,6 +7,7 @@ const state = {
   search: "",
   color: "all",
   sort: "default",
+  onlySaved: false,
   saved: new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")),
 };
 
@@ -39,7 +40,7 @@ function header(active = "catalog") {
         <a href="index.html#bathroom"${current("bathroom")}>Ванная</a>
         <a href="index.html#bedroom"${current("bedroom")}>Спальня</a>
         <a href="floor-tiles.html"${current("catalog")}>Каталог</a>
-        <span class="saved-link" title="Сохранённые позиции хранятся в этом браузере">Сохранено · <b data-saved-count>${state.saved.size}</b></span>
+        <a class="saved-link" href="saved.html"${current("saved")} title="Открыть сохранённые позиции">Сохранено · <b data-saved-count>${state.saved.size}</b></a>
       </nav>
     </header>`;
 }
@@ -212,7 +213,8 @@ function filteredItems() {
   const query = state.search.trim().toLocaleLowerCase("ru");
   const result = state.items.filter((item) => {
     const haystack = [item.brand, item.collection, item.name, item.article, item.color, item.type, item.purpose].join(" ").toLocaleLowerCase("ru");
-    return (!query || haystack.includes(query)) && (state.color === "all" || item.colorFamily === state.color);
+    const matchesSaved = !state.onlySaved || state.saved.has(item.id);
+    return matchesSaved && (!query || haystack.includes(query)) && (state.color === "all" || item.colorFamily === state.color);
   });
   if (state.sort === "price-asc") result.sort((a, b) => (a.price || Infinity) - (b.price || Infinity));
   if (state.sort === "price-desc") result.sort((a, b) => (b.price || -1) - (a.price || -1));
@@ -225,8 +227,12 @@ function refreshCatalog() {
   const grid = document.querySelector("#product-grid");
   const count = document.querySelector("#results-count");
   if (!grid || !count) return;
-  count.textContent = `Показано ${items.length} из ${state.items.length}`;
-  grid.innerHTML = items.length ? items.map(productCard).join("") : '<div class="empty-results">По выбранным параметрам ничего не найдено.<br>Попробуйте изменить поиск или фильтр.</div>';
+  const savedTotal = state.items.filter((item) => state.saved.has(item.id)).length;
+  count.textContent = state.onlySaved ? `Показано ${items.length} из ${savedTotal} сохранённых` : `Показано ${items.length} из ${state.items.length}`;
+  const emptyMessage = state.onlySaved && savedTotal === 0
+    ? '<div class="empty-results saved-empty"><span class="empty-heart">♡</span><h2 class="display">Здесь пока пусто</h2><p>Нажмите на сердечко у понравившейся позиции — она появится на этой странице.</p><a class="button primary" href="floor-tiles.html">Перейти в каталог</a></div>'
+    : '<div class="empty-results">По выбранным параметрам ничего не найдено.<br>Попробуйте изменить поиск или фильтр.</div>';
+  grid.innerHTML = items.length ? items.map(productCard).join("") : emptyMessage;
   bindSaveButtons();
 }
 
@@ -238,6 +244,10 @@ function bindSaveButtons() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...state.saved]));
       document.querySelectorAll("[data-saved-count]").forEach((node) => { node.textContent = state.saved.size; });
       const saved = state.saved.has(id);
+      if (state.onlySaved) {
+        refreshCatalog();
+        return;
+      }
       button.setAttribute("aria-pressed", String(saved));
       button.setAttribute("aria-label", saved ? "Удалить из сохранённых" : "Сохранить позицию");
       button.textContent = saved ? "♥" : "♡";
@@ -246,6 +256,7 @@ function bindSaveButtons() {
 }
 
 async function renderCatalog(kind) {
+  state.onlySaved = false;
   state.kind = kind;
   const isFloor = kind === "floor";
   const title = isFloor ? "Плитка на пол" : "Плитка на стены";
@@ -297,6 +308,56 @@ async function renderCatalog(kind) {
   }
 }
 
+async function renderSavedPage() {
+  state.onlySaved = true;
+  document.title = "Сохранённое — Дом, который собирается";
+  document.querySelector("#app").innerHTML = `
+    ${header("saved")}
+    <main id="main">
+      <div class="wrap">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="index.html">Главная</a> / Сохранённое</nav>
+        <section class="category-header saved-page-header">
+          <div><span class="eyebrow">Личная подборка</span><h1 class="display">Сохранённое</h1></div>
+          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — из напольной и настенной плитки.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
+        </section>
+      </div>
+      <section class="catalog-tools" aria-label="Фильтры сохранённых позиций">
+        <div class="wrap tools-row">
+          <label><span class="visually-hidden">Поиск</span><input class="field search-field" id="search" type="search" placeholder="Название, коллекция или артикул"></label>
+          <label><span class="visually-hidden">Цветовая группа</span><select class="field" id="color-filter"><option value="all">Все цвета</option></select></label>
+          <label><span class="visually-hidden">Сортировка</span><select class="field" id="sort"><option value="default">По порядку</option><option value="price-asc">Сначала дешевле</option><option value="price-desc">Сначала дороже</option><option value="name">По названию</option></select></label>
+          <span class="results-count" id="results-count" aria-live="polite">Загрузка…</span>
+        </div>
+      </section>
+      <section class="catalog-section"><div class="wrap"><div class="product-grid" id="product-grid" aria-live="polite"></div><div class="error-box" id="load-error" hidden></div></div></section>
+    </main>
+    ${footer()}`;
+
+  try {
+    const [floorResponse, wallResponse] = await Promise.all([
+      fetch("assets/data/floor_tiles.json"),
+      fetch("assets/data/wall_tiles.json"),
+    ]);
+    if (!floorResponse.ok || !wallResponse.ok) throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}`);
+    const [floorRaw, wallRaw] = await Promise.all([floorResponse.json(), wallResponse.json()]);
+    state.items = [...floorRaw.map(normalizeFloor), ...wallRaw.map(normalizeWall)];
+    const colorSelect = document.querySelector("#color-filter");
+    [...new Set(state.items.filter((item) => state.saved.has(item.id)).map((item) => item.colorFamily))]
+      .sort((a, b) => a.localeCompare(b, "ru"))
+      .forEach((color) => colorSelect.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(color)}">${escapeHtml(color)}</option>`));
+    document.querySelector("#search").addEventListener("input", (event) => { state.search = event.target.value; refreshCatalog(); });
+    colorSelect.addEventListener("change", (event) => { state.color = event.target.value; refreshCatalog(); });
+    document.querySelector("#sort").addEventListener("change", (event) => { state.sort = event.target.value; refreshCatalog(); });
+    refreshCatalog();
+  } catch (error) {
+    document.querySelector("#results-count").textContent = "Ошибка загрузки";
+    const box = document.querySelector("#load-error");
+    box.hidden = false;
+    box.textContent = "Не удалось загрузить сохранённые позиции. Обновите страницу или попробуйте позже.";
+    console.error(error);
+  }
+}
+
 function renderEmptyPage() {
   const body = document.body;
   const room = body.dataset.room;
@@ -318,4 +379,5 @@ function renderEmptyPage() {
 const page = document.body.dataset.page;
 if (page === "home") renderHome();
 if (page === "catalog") renderCatalog(document.body.dataset.kind);
+if (page === "saved") renderSavedPage();
 if (page === "empty") renderEmptyPage();

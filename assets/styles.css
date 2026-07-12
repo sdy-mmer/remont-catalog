@@ -36,6 +36,7 @@ button, select { color: inherit; }
 .main-nav a:not(.saved-link) { padding-block: 7px; border-bottom: 1px solid transparent; }
 .main-nav a[aria-current="page"] { border-color: var(--ink); }
 .saved-link { min-width: 140px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; text-align: center; }
+.saved-link:hover, .saved-link[aria-current="page"] { background: var(--ink); color: var(--paper); }
 
 .home-hero { min-height: 650px; padding: 70px 0 82px; display: grid; grid-template-columns: 0.86fr 1.14fr; gap: 5vw; align-items: center; }
 .home-copy h1 { max-width: 690px; margin: 26px 0 34px; font-size: clamp(58px, 6.5vw, 108px); line-height: 0.9; }
@@ -116,7 +117,12 @@ button, select { color: inherit; }
 .product-links > :last-child { border: 0; }
 .product-links a:hover { background: var(--sand); }
 .product-links .unavailable { color: #aaa298; cursor: not-allowed; }
-.empty-results { padding: 70px 20px; border: 1px solid var(--line); color: var(--muted); text-align: center; }
+.empty-results { grid-column: 1 / -1; padding: 70px 20px; border: 1px solid var(--line); color: var(--muted); text-align: center; }
+.saved-page-header h1 { font-size: clamp(58px, 7vw, 96px); }
+.saved-empty { padding-block: 90px; background: var(--paper); }
+.saved-empty h2 { margin: 14px 0 10px; color: var(--ink); font-size: 42px; }
+.saved-empty p { max-width: 520px; margin: 0 auto 28px; }
+.empty-heart { color: var(--sand); font: 88px/0.8 var(--display); }
 .error-box { margin-block: 50px; padding: 30px; border: 1px solid var(--warning); color: var(--warning); }
 
 .empty-page { min-height: 68vh; padding: 90px 0 120px; display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 60px; align-items: center; }
