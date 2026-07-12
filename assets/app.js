@@ -74,11 +74,11 @@ function renderHome() {
             <div class="hero-image one"><img src="assets/floor/10_SG572792R.jpg" alt="Керамогранит Риальто голубой"></div>
             <div class="hero-image two"><img src="assets/wall/31545.jpg" alt="Настенная плитка EQUIPE BALI Hesper"></div>
             <div class="hero-image three"><img src="assets/floor/13_SG016320R.jpg" alt="Светлый керамогранит"></div>
-            <span class="hero-caption">57 находок · 3 готовые подборки</span>
+            <span class="hero-caption">63 находки · 4 готовые подборки</span>
           </div>
         </section>
         <section class="trust-strip" aria-label="О каталоге">
-          <div class="trust-item"><b>57</b><span>позиций с фото,<br>артикулом и характеристиками</span></div>
+          <div class="trust-item"><b>63</b><span>позиции с фото,<br>артикулом и характеристиками</span></div>
           <div class="trust-item"><b>12.07</b><span>дата последней<br>проверки цен</span></div>
           <div class="trust-item"><b>3×</b><span>основной магазин,<br>альтернатива и официальный сайт</span></div>
         </section>
@@ -99,6 +99,10 @@ function renderHome() {
             <a class="category-tile" href="bathroom-wallpaper.html">
               <img src="assets/wallpaper/milassa-japandi-ja1-005.png" alt="Обои Milassa Тысяча журавлей в стиле джапанди">
               <span class="tile-wash"></span><span class="tile-info"><span>6 позиций</span><h3>Обои</h3><span>Открыть подборку →</span></span>
+            </a>
+            <a class="category-tile" href="bathroom-lighting.html">
+              <img src="assets/lighting/loft-concept-turin-pendant-gray.jpg" alt="Подвесной светильник Turin Gray из дымчатого стекла">
+              <span class="tile-wash"></span><span class="tile-info"><span>6 позиций</span><h3>Светильники</h3><span>Открыть подборку →</span></span>
             </a>
             <a class="category-tile empty-tile" href="bathroom-mirror.html"><span class="empty-mark">◇</span><span><span class="eyebrow">Скоро</span><h3>Зеркало</h3><p>Подборка ещё<br>не добавлена</p></span></a>
           </div>
@@ -208,6 +212,43 @@ function normalizeWallpaper(item) {
   };
 }
 
+function normalizeLighting(item) {
+  return {
+    id: `lighting-${item.article}`,
+    kind: "lighting",
+    number: item.no,
+    brand: item.brand,
+    collection: item.collection,
+    name: item.name,
+    article: item.article,
+    colorFamily: item.color_family || "Без категории",
+    color: item.color || "Не указан",
+    type: item.fixture_type || "Не указан",
+    purpose: item.placement || "Не указано",
+    fixtureType: item.fixture_type || "Не указан",
+    placement: item.placement || "Не указано",
+    material: item.material || "Не указан",
+    size: item.size || "Не указан",
+    lightSource: item.light_source || "Не указан",
+    bulbIncluded: item.bulb_included || "Не указано",
+    power: item.power || "Не указана",
+    ipRating: item.ip_rating || "Не указан",
+    style: item.style || "Не указан",
+    country: item.country || "Не указана",
+    price: item.price_rub,
+    priceDisplay: item.price_display || `${new Intl.NumberFormat("ru-RU").format(item.price_rub)} ₽`,
+    availability: item.availability || "Уточнить у продавца",
+    availabilityTone: item.availability_tone || "available",
+    checkedDate: displayDate(item.checked_date),
+    note: item.notes || "Перед заказом уточните актуальные условия.",
+    warning: item.warning || "",
+    image: `assets/lighting/${item.asset_file}`,
+    buyUrl: item.buy_url || "",
+    altUrl: item.alt_url || "",
+    officialUrl: item.official_url || "",
+  };
+}
+
 function productLink(url, label, unavailableLabel) {
   if (!url) return `<span class="unavailable" title="Ссылка пока не добавлена">${escapeHtml(unavailableLabel)}</span>`;
   return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)} — откроется в новой вкладке">${escapeHtml(label)} ↗</a>`;
@@ -222,6 +263,13 @@ function productCard(item) {
       ["Размер рулона", item.size], ["Раппорт", item.rapport], ["Поверхность", item.surface],
       ["Цвет", item.color], ["Рисунок", item.pattern], ["Стиль", item.style], ["Страна", item.country],
     ]
+    : item.kind === "lighting"
+      ? [
+        ["Тип", item.fixtureType], ["Размещение", item.placement], ["Материалы", item.material],
+        ["Размер", item.size], ["Источник света", item.lightSource], ["Лампа в комплекте", item.bulbIncluded],
+        ["Мощность", item.power], ["Защита", item.ipRating], ["Цвет", item.color],
+        ["Стиль", item.style], ["Страна / бренд", item.country],
+      ]
     : [
       ["Тип", item.type], ["Назначение", item.purpose], ["Размер", item.size],
       ["Толщина", item.thickness], ["Поверхность", item.surface], ["Цвет", item.color],
@@ -332,6 +380,15 @@ async function renderCatalog(kind) {
       file: "wallpapers.json",
       normalize: normalizeWallpaper,
     },
+    lighting: {
+      title: "Светильники",
+      heading: "Светильники",
+      eyebrow: "Ванная · подборка 04",
+      subtitle: "6 вариантов: три выбранные модели Loft Concept и три похожие альтернативы из дымчатого стекла и графичного металла.",
+      dateNote: "Цены и наличие проверены 12 июля 2026 года. Модели IP20 подходят только для сухой зоны ванной; место установки и электрическую безопасность должен подтвердить электрик.",
+      file: "lighting.json",
+      normalize: normalizeLighting,
+    },
   };
   const config = configs[kind] || configs.floor;
   const { title, heading, eyebrow, subtitle, dateNote, file, normalize } = config;
@@ -390,7 +447,7 @@ async function renderSavedPage() {
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="index.html">Главная</a> / Сохранённое</nav>
         <section class="category-header saved-page-header">
           <div><span class="eyebrow">Личная подборка</span><h1 class="display">Сохранённое</h1></div>
-          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — плитка и обои из всех готовых подборок.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
+          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — плитка, обои и светильники из всех готовых подборок.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
         </section>
       </div>
       <section class="catalog-tools" aria-label="Фильтры сохранённых позиций">
@@ -406,21 +463,23 @@ async function renderSavedPage() {
     ${footer()}`;
 
   try {
-    const [floorResponse, wallResponse, wallpaperResponse] = await Promise.all([
+    const [floorResponse, wallResponse, wallpaperResponse, lightingResponse] = await Promise.all([
       fetch("assets/data/floor_tiles.json"),
       fetch("assets/data/wall_tiles.json"),
       fetch("assets/data/wallpapers.json"),
+      fetch("assets/data/lighting.json"),
     ]);
-    if (!floorResponse.ok || !wallResponse.ok || !wallpaperResponse.ok) {
-      throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}/${wallpaperResponse.status}`);
+    if (!floorResponse.ok || !wallResponse.ok || !wallpaperResponse.ok || !lightingResponse.ok) {
+      throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}/${wallpaperResponse.status}/${lightingResponse.status}`);
     }
-    const [floorRaw, wallRaw, wallpaperRaw] = await Promise.all([
-      floorResponse.json(), wallResponse.json(), wallpaperResponse.json(),
+    const [floorRaw, wallRaw, wallpaperRaw, lightingRaw] = await Promise.all([
+      floorResponse.json(), wallResponse.json(), wallpaperResponse.json(), lightingResponse.json(),
     ]);
     state.items = [
       ...floorRaw.map(normalizeFloor),
       ...wallRaw.map(normalizeWall),
       ...wallpaperRaw.map(normalizeWallpaper),
+      ...lightingRaw.map(normalizeLighting),
     ];
     const colorSelect = document.querySelector("#color-filter");
     [...new Set(state.items.filter((item) => state.saved.has(item.id)).map((item) => item.colorFamily))]
