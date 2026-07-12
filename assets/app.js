@@ -74,18 +74,18 @@ function renderHome() {
             <div class="hero-image one"><img src="assets/floor/10_SG572792R.jpg" alt="Керамогранит Риальто голубой"></div>
             <div class="hero-image two"><img src="assets/wall/31545.jpg" alt="Настенная плитка EQUIPE BALI Hesper"></div>
             <div class="hero-image three"><img src="assets/floor/13_SG016320R.jpg" alt="Светлый керамогранит"></div>
-            <span class="hero-caption">63 находки · 4 готовые подборки</span>
+            <span class="hero-caption">71 находка · 5 готовых подборок</span>
           </div>
         </section>
         <section class="trust-strip" aria-label="О каталоге">
-          <div class="trust-item"><b>63</b><span>позиции с фото,<br>артикулом и характеристиками</span></div>
+          <div class="trust-item"><b>71</b><span>позиция с фото,<br>артикулом и характеристиками</span></div>
           <div class="trust-item"><b>12.07</b><span>дата последней<br>проверки цен</span></div>
           <div class="trust-item"><b>3×</b><span>основной магазин,<br>альтернатива и официальный сайт</span></div>
         </section>
         <section class="room-section" id="bathroom" aria-labelledby="bathroom-title">
           <div class="section-head">
             <div><span class="eyebrow">Комната 01</span><h2 class="display" id="bathroom-title">Ванная</h2></div>
-            <p>Материалы для пола и стен уже собраны. Остальные разделы будут появляться по мере выбора.</p>
+            <p>Материалы, свет и зеркала собраны в отдельных подборках с ценами, наличием и прямыми ссылками.</p>
           </div>
           <div class="category-grid">
             <a class="category-tile" href="floor-tiles.html">
@@ -102,9 +102,12 @@ function renderHome() {
             </a>
             <a class="category-tile" href="bathroom-lighting.html">
               <img src="assets/lighting/loft-concept-turin-pendant-gray.jpg" alt="Подвесной светильник Turin Gray из дымчатого стекла">
-              <span class="tile-wash"></span><span class="tile-info"><span>6 позиций</span><h3>Светильники</h3><span>Открыть подборку →</span></span>
+              <span class="tile-wash"></span><span class="tile-info"><span>7 позиций</span><h3>Светильники</h3><span>Открыть подборку →</span></span>
             </a>
-            <a class="category-tile empty-tile" href="bathroom-mirror.html"><span class="empty-mark">◇</span><span><span class="eyebrow">Скоро</span><h3>Зеркало</h3><p>Подборка ещё<br>не добавлена</p></span></a>
+            <a class="category-tile" href="bathroom-mirror.html">
+              <img src="assets/mirrors/loft-concept-reflection-of-light.jpg" alt="Асимметричное зеркало Reflection of Light в чёрной раме">
+              <span class="tile-wash"></span><span class="tile-info"><span>7 позиций</span><h3>Зеркала</h3><span>Открыть подборку →</span></span>
+            </a>
           </div>
         </section>
         <section class="bedroom-section" id="bedroom" aria-labelledby="bedroom-title">
@@ -249,6 +252,44 @@ function normalizeLighting(item) {
   };
 }
 
+function normalizeMirror(item) {
+  return {
+    id: `mirror-${item.article}`,
+    kind: "mirror",
+    number: item.no,
+    brand: item.brand,
+    collection: item.collection,
+    name: item.name,
+    article: item.article,
+    colorFamily: item.color_family || "Без категории",
+    color: item.color || "Не указан",
+    type: "Зеркало",
+    purpose: item.bathroom_suitability || "Не указано",
+    shape: item.shape || "Не указана",
+    mounting: item.mounting || "Не указано",
+    frame: item.frame || "Не указана",
+    material: item.material || "Не указан",
+    size: item.size || "Не указан",
+    depth: item.depth || "Не указана",
+    lighting: item.lighting || "Не указано",
+    antiFog: item.anti_fog || "Не указано",
+    bathroomSuitability: item.bathroom_suitability || "Не указана",
+    style: item.style || "Не указан",
+    country: item.country || "Не указана",
+    price: item.price_rub,
+    priceDisplay: item.price_display || `${new Intl.NumberFormat("ru-RU").format(item.price_rub)} ₽`,
+    availability: item.availability || "Уточнить у продавца",
+    availabilityTone: item.availability_tone || "available",
+    checkedDate: displayDate(item.checked_date),
+    note: item.notes || "Перед заказом уточните актуальные условия.",
+    warning: item.warning || "",
+    image: `assets/mirrors/${item.asset_file}`,
+    buyUrl: item.buy_url || "",
+    altUrl: item.alt_url || "",
+    officialUrl: item.official_url || "",
+  };
+}
+
 function productLink(url, label, unavailableLabel) {
   if (!url) return `<span class="unavailable" title="Ссылка пока не добавлена">${escapeHtml(unavailableLabel)}</span>`;
   return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)} — откроется в новой вкладке">${escapeHtml(label)} ↗</a>`;
@@ -268,6 +309,14 @@ function productCard(item) {
         ["Тип", item.fixtureType], ["Размещение", item.placement], ["Материалы", item.material],
         ["Размер", item.size], ["Источник света", item.lightSource], ["Лампа в комплекте", item.bulbIncluded],
         ["Мощность", item.power], ["Защита", item.ipRating], ["Цвет", item.color],
+        ["Стиль", item.style], ["Страна / бренд", item.country],
+      ]
+    : item.kind === "mirror"
+      ? [
+        ["Форма", item.shape], ["Установка", item.mounting], ["Рама", item.frame],
+        ["Материалы", item.material], ["Размер", item.size], ["Глубина", item.depth],
+        ["Подсветка", item.lighting], ["Антизапотевание", item.antiFog],
+        ["Для ванной", item.bathroomSuitability], ["Цвет", item.color],
         ["Стиль", item.style], ["Страна / бренд", item.country],
       ]
     : [
@@ -384,10 +433,19 @@ async function renderCatalog(kind) {
       title: "Светильники",
       heading: "Светильники",
       eyebrow: "Ванная · подборка 04",
-      subtitle: "6 вариантов: три выбранные модели Loft Concept и три похожие альтернативы из дымчатого стекла и графичного металла.",
+      subtitle: "7 вариантов: выбранные модели из стекла и графичного металла, включая новое органическое бра 8232 model.",
       dateNote: "Цены и наличие проверены 12 июля 2026 года. Модели IP20 подходят только для сухой зоны ванной; место установки и электрическую безопасность должен подтвердить электрик.",
       file: "lighting.json",
       normalize: normalizeLighting,
+    },
+    mirror: {
+      title: "Зеркала",
+      heading: "Зеркала",
+      eyebrow: "Ванная · подборка 05",
+      subtitle: "7 вариантов в тонкой чёрной раме: четыре выбранные модели Loft Concept и три похожих зеркала мягкой геометрии.",
+      dateNote: "Цены и наличие проверены 12 июля 2026 года. Для установки рядом с раковиной подтвердите у продавца влагостойкость рамы, задника и креплений; модели без такого подтверждения размещайте вне прямых брызг.",
+      file: "mirrors.json",
+      normalize: normalizeMirror,
     },
   };
   const config = configs[kind] || configs.floor;
@@ -447,7 +505,7 @@ async function renderSavedPage() {
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="index.html">Главная</a> / Сохранённое</nav>
         <section class="category-header saved-page-header">
           <div><span class="eyebrow">Личная подборка</span><h1 class="display">Сохранённое</h1></div>
-          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — плитка, обои и светильники из всех готовых подборок.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
+          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — плитка, обои, светильники и зеркала из всех готовых подборок.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
         </section>
       </div>
       <section class="catalog-tools" aria-label="Фильтры сохранённых позиций">
@@ -463,23 +521,25 @@ async function renderSavedPage() {
     ${footer()}`;
 
   try {
-    const [floorResponse, wallResponse, wallpaperResponse, lightingResponse] = await Promise.all([
+    const [floorResponse, wallResponse, wallpaperResponse, lightingResponse, mirrorResponse] = await Promise.all([
       fetch("assets/data/floor_tiles.json"),
       fetch("assets/data/wall_tiles.json"),
       fetch("assets/data/wallpapers.json"),
       fetch("assets/data/lighting.json"),
+      fetch("assets/data/mirrors.json"),
     ]);
-    if (!floorResponse.ok || !wallResponse.ok || !wallpaperResponse.ok || !lightingResponse.ok) {
-      throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}/${wallpaperResponse.status}/${lightingResponse.status}`);
+    if (!floorResponse.ok || !wallResponse.ok || !wallpaperResponse.ok || !lightingResponse.ok || !mirrorResponse.ok) {
+      throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}/${wallpaperResponse.status}/${lightingResponse.status}/${mirrorResponse.status}`);
     }
-    const [floorRaw, wallRaw, wallpaperRaw, lightingRaw] = await Promise.all([
-      floorResponse.json(), wallResponse.json(), wallpaperResponse.json(), lightingResponse.json(),
+    const [floorRaw, wallRaw, wallpaperRaw, lightingRaw, mirrorRaw] = await Promise.all([
+      floorResponse.json(), wallResponse.json(), wallpaperResponse.json(), lightingResponse.json(), mirrorResponse.json(),
     ]);
     state.items = [
       ...floorRaw.map(normalizeFloor),
       ...wallRaw.map(normalizeWall),
       ...wallpaperRaw.map(normalizeWallpaper),
       ...lightingRaw.map(normalizeLighting),
+      ...mirrorRaw.map(normalizeMirror),
     ];
     const colorSelect = document.querySelector("#color-filter");
     [...new Set(state.items.filter((item) => state.saved.has(item.id)).map((item) => item.colorFamily))]
