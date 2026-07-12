@@ -110,6 +110,8 @@ button, select { color: inherit; }
 .checked { color: var(--muted); font-size: 10px; text-align: right; }
 .availability { padding: 8px 10px; background: rgba(85, 112, 91, 0.08); color: var(--green); font-size: 11px; }
 .availability::before { content: "●"; margin-right: 6px; }
+.availability.limited { background: rgba(142, 77, 61, 0.08); color: var(--warning); }
+.availability.unavailable { background: rgba(41, 40, 36, 0.08); color: var(--muted); }
 .warning-note { margin-top: 12px; padding: 11px; background: rgba(142, 77, 61, 0.08); color: var(--warning); font-size: 11px; }
 .product-note { margin: 12px 0; color: var(--muted); font-size: 11px; }
 .product-links { margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }

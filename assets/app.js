@@ -32,7 +32,7 @@ function header(active = "catalog") {
   const current = (name) => active === name ? ' aria-current="page"' : "";
   return `
     <a class="skip-link" href="#main">Перейти к содержанию</a>
-    <div class="top-note">Цены и наличие проверены 11 июля 2026 · перед покупкой уточняйте актуальные условия</div>
+    <div class="top-note">Цены и наличие проверены 11–12 июля 2026 · перед покупкой уточняйте актуальные условия</div>
     <header class="site-header">
       <a class="brand" href="index.html">Дом, который собирается<small>находки для ремонта</small></a>
       <nav class="main-nav" aria-label="Основная навигация">
@@ -74,12 +74,12 @@ function renderHome() {
             <div class="hero-image one"><img src="assets/floor/10_SG572792R.jpg" alt="Керамогранит Риальто голубой"></div>
             <div class="hero-image two"><img src="assets/wall/31545.jpg" alt="Настенная плитка EQUIPE BALI Hesper"></div>
             <div class="hero-image three"><img src="assets/floor/13_SG016320R.jpg" alt="Светлый керамогранит"></div>
-            <span class="hero-caption">51 находка · 2 готовые подборки</span>
+            <span class="hero-caption">57 находок · 3 готовые подборки</span>
           </div>
         </section>
         <section class="trust-strip" aria-label="О каталоге">
-          <div class="trust-item"><b>51</b><span>позиция с фото,<br>артикулом и характеристиками</span></div>
-          <div class="trust-item"><b>11.07</b><span>дата последней<br>проверки цен</span></div>
+          <div class="trust-item"><b>57</b><span>позиций с фото,<br>артикулом и характеристиками</span></div>
+          <div class="trust-item"><b>12.07</b><span>дата последней<br>проверки цен</span></div>
           <div class="trust-item"><b>3×</b><span>основной магазин,<br>альтернатива и официальный сайт</span></div>
         </section>
         <section class="room-section" id="bathroom" aria-labelledby="bathroom-title">
@@ -96,7 +96,10 @@ function renderHome() {
               <img src="assets/wall/31552.jpg" alt="Зелёная настенная плитка EQUIPE">
               <span class="tile-wash"></span><span class="tile-info"><span>32 позиции</span><h3>Плитка на стены</h3><span>Открыть подборку →</span></span>
             </a>
-            <a class="category-tile empty-tile" href="bathroom-wallpaper.html"><span class="empty-mark">○</span><span><span class="eyebrow">Скоро</span><h3>Обои</h3><p>Подборка ещё<br>не добавлена</p></span></a>
+            <a class="category-tile" href="bathroom-wallpaper.html">
+              <img src="assets/wallpaper/milassa-japandi-ja1-005.png" alt="Обои Milassa Тысяча журавлей в стиле джапанди">
+              <span class="tile-wash"></span><span class="tile-info"><span>6 позиций</span><h3>Обои</h3><span>Открыть подборку →</span></span>
+            </a>
             <a class="category-tile empty-tile" href="bathroom-mirror.html"><span class="empty-mark">◇</span><span><span class="eyebrow">Скоро</span><h3>Зеркало</h3><p>Подборка ещё<br>не добавлена</p></span></a>
           </div>
         </section>
@@ -171,6 +174,40 @@ function normalizeWall(item) {
   };
 }
 
+function normalizeWallpaper(item) {
+  return {
+    id: `wallpaper-${item.article}`,
+    kind: "wallpaper",
+    number: item.no,
+    brand: item.brand,
+    collection: item.collection,
+    name: item.name,
+    article: item.article,
+    colorFamily: item.color_family || "Без категории",
+    color: item.color || "Не указан",
+    type: item.type || "Не указан",
+    purpose: item.purpose || "Не указано",
+    size: item.size || "Не указан",
+    rapport: item.rapport || "Не указан",
+    surface: item.surface || "Не указана",
+    material: item.material || "Не указан",
+    pattern: item.pattern || "Не указан",
+    style: item.style || "Не указан",
+    country: item.country || "Не указана",
+    price: item.price_rub_roll,
+    priceDisplay: item.price_display || `${new Intl.NumberFormat("ru-RU").format(item.price_rub_roll)} ₽/рулон`,
+    availability: item.availability || "Уточнить у продавца",
+    availabilityTone: item.availability_tone || "available",
+    checkedDate: displayDate(item.checked_date),
+    note: item.notes || "Перед заказом уточните актуальные условия.",
+    warning: item.warning || "",
+    image: `assets/wallpaper/${item.asset_file}`,
+    buyUrl: item.buy_url || "",
+    altUrl: item.alt_url || "",
+    officialUrl: item.official_url || "",
+  };
+}
+
 function productLink(url, label, unavailableLabel) {
   if (!url) return `<span class="unavailable" title="Ссылка пока не добавлена">${escapeHtml(unavailableLabel)}</span>`;
   return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(label)} — откроется в новой вкладке">${escapeHtml(label)} ↗</a>`;
@@ -179,11 +216,17 @@ function productLink(url, label, unavailableLabel) {
 function productCard(item) {
   const isSaved = state.saved.has(item.id);
   const warningText = item.warning.replace(/^Важно:\s*/i, "");
-  const specs = [
-    ["Тип", item.type], ["Назначение", item.purpose], ["Размер", item.size],
-    ["Толщина", item.thickness], ["Поверхность", item.surface], ["Цвет", item.color],
-    ["Кромка", item.edge], ["Дизайн / коллекция", item.design], ["Страна / регион", item.country],
-  ];
+  const specs = item.kind === "wallpaper"
+    ? [
+      ["Материал", item.material], ["Тип", item.type], ["Назначение", item.purpose],
+      ["Размер рулона", item.size], ["Раппорт", item.rapport], ["Поверхность", item.surface],
+      ["Цвет", item.color], ["Рисунок", item.pattern], ["Стиль", item.style], ["Страна", item.country],
+    ]
+    : [
+      ["Тип", item.type], ["Назначение", item.purpose], ["Размер", item.size],
+      ["Толщина", item.thickness], ["Поверхность", item.surface], ["Цвет", item.color],
+      ["Кромка", item.edge], ["Дизайн / коллекция", item.design], ["Страна / регион", item.country],
+    ];
   return `
     <article class="product-card" data-product-id="${escapeHtml(item.id)}">
       <div class="product-media">
@@ -197,7 +240,7 @@ function productCard(item) {
         <div class="article">Артикул ${escapeHtml(item.article)}</div>
         <dl class="specs">${specs.map(([label, value]) => `<div class="spec"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>
         <div class="price-row"><strong class="price">${escapeHtml(item.priceDisplay)}</strong><span class="checked">проверено<br>${escapeHtml(item.checkedDate)}</span></div>
-        <div class="availability">${escapeHtml(item.availability)}</div>
+        <div class="availability ${escapeHtml(item.availabilityTone || "available")}">${escapeHtml(item.availability)}</div>
         ${item.warning ? `<div class="warning-note"><strong>Важно:</strong> ${escapeHtml(warningText)}</div>` : ""}
         <p class="product-note">${escapeHtml(item.note)}</p>
         <div class="product-links">
@@ -258,11 +301,40 @@ function bindSaveButtons() {
 async function renderCatalog(kind) {
   state.onlySaved = false;
   state.kind = kind;
-  const isFloor = kind === "floor";
-  const title = isFloor ? "Плитка на пол" : "Плитка на стены";
-  const subtitle = isFloor
-    ? "19 вариантов керамогранита и плитки: от светлого терраццо до глубокого графита."
-    : "32 варианта настенной плитки EQUIPE: фактурные, глянцевые и выразительные цветные коллекции.";
+  state.search = "";
+  state.color = "all";
+  state.sort = "default";
+  const configs = {
+    floor: {
+      title: "Плитка на пол",
+      heading: "Плитка<br>на пол",
+      eyebrow: "Ванная · подборка 01",
+      subtitle: "19 вариантов керамогранита и плитки: от светлого терраццо до глубокого графита.",
+      dateNote: "Цены и остатки проверены 11 июля 2026 года и могут измениться. Перед заказом уточните тон, калибр и доступность.",
+      file: "floor_tiles.json",
+      normalize: normalizeFloor,
+    },
+    wall: {
+      title: "Плитка на стены",
+      heading: "Плитка<br>на стены",
+      eyebrow: "Ванная · подборка 02",
+      subtitle: "32 варианта настенной плитки EQUIPE: фактурные, глянцевые и выразительные цветные коллекции.",
+      dateNote: "Цены и остатки проверены 11 июля 2026 года и могут измениться. Перед заказом уточните тон, калибр и доступность.",
+      file: "wall_tiles.json",
+      normalize: normalizeWall,
+    },
+    wallpaper: {
+      title: "Обои",
+      heading: "Обои",
+      eyebrow: "Ванная · подборка 03",
+      subtitle: "6 вариантов из заметки: спокойная геометрия, карпы кои и выразительные растительные мотивы в эстетике Japandi.",
+      dateNote: "Цены и остатки проверены 12 июля 2026 года. Для ванной используйте обои только в сухой, хорошо вентилируемой зоне, без прямого контакта с водой.",
+      file: "wallpapers.json",
+      normalize: normalizeWallpaper,
+    },
+  };
+  const config = configs[kind] || configs.floor;
+  const { title, heading, eyebrow, subtitle, dateNote, file, normalize } = config;
   document.title = `${title} — Дом, который собирается`;
   document.querySelector("#app").innerHTML = `
     ${header("catalog")}
@@ -270,8 +342,8 @@ async function renderCatalog(kind) {
       <div class="wrap">
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="index.html">Главная</a> / <a href="index.html#bathroom">Ванная</a> / ${title}</nav>
         <section class="category-header">
-          <div><span class="eyebrow">Ванная · ${isFloor ? "подборка 01" : "подборка 02"}</span><h1 class="display">${isFloor ? "Плитка<br>на пол" : "Плитка<br>на стены"}</h1></div>
-          <div class="category-intro"><p>${subtitle} Все доступные данные собраны в одной карточке.</p><div class="date-note">Цены и остатки проверены 11 июля 2026 года и могут измениться. Перед заказом уточните тон, калибр и доступность.</div></div>
+          <div><span class="eyebrow">${eyebrow}</span><h1 class="display">${heading}</h1></div>
+          <div class="category-intro"><p>${subtitle} Все доступные данные собраны в одной карточке.</p><div class="date-note">${dateNote}</div></div>
         </section>
       </div>
       <section class="catalog-tools" aria-label="Фильтры каталога">
@@ -287,10 +359,10 @@ async function renderCatalog(kind) {
     ${footer()}`;
 
   try {
-    const response = await fetch(`assets/data/${isFloor ? "floor_tiles" : "wall_tiles"}.json`);
+    const response = await fetch(`assets/data/${file}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const raw = await response.json();
-    state.items = raw.map(isFloor ? normalizeFloor : normalizeWall);
+    state.items = raw.map(normalize);
     const colorSelect = document.querySelector("#color-filter");
     [...new Set(state.items.map((item) => item.colorFamily))].sort((a, b) => a.localeCompare(b, "ru")).forEach((color) => {
       colorSelect.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(color)}">${escapeHtml(color)}</option>`);
@@ -318,7 +390,7 @@ async function renderSavedPage() {
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="index.html">Главная</a> / Сохранённое</nav>
         <section class="category-header saved-page-header">
           <div><span class="eyebrow">Личная подборка</span><h1 class="display">Сохранённое</h1></div>
-          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — из напольной и настенной плитки.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
+          <div class="category-intro"><p>Все позиции, которым вы поставили лайк, собраны здесь — плитка и обои из всех готовых подборок.</p><div class="date-note">Список хранится в этом браузере. Нажмите на заполненное сердечко, чтобы убрать позицию.</div></div>
         </section>
       </div>
       <section class="catalog-tools" aria-label="Фильтры сохранённых позиций">
@@ -334,13 +406,22 @@ async function renderSavedPage() {
     ${footer()}`;
 
   try {
-    const [floorResponse, wallResponse] = await Promise.all([
+    const [floorResponse, wallResponse, wallpaperResponse] = await Promise.all([
       fetch("assets/data/floor_tiles.json"),
       fetch("assets/data/wall_tiles.json"),
+      fetch("assets/data/wallpapers.json"),
     ]);
-    if (!floorResponse.ok || !wallResponse.ok) throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}`);
-    const [floorRaw, wallRaw] = await Promise.all([floorResponse.json(), wallResponse.json()]);
-    state.items = [...floorRaw.map(normalizeFloor), ...wallRaw.map(normalizeWall)];
+    if (!floorResponse.ok || !wallResponse.ok || !wallpaperResponse.ok) {
+      throw new Error(`HTTP ${floorResponse.status}/${wallResponse.status}/${wallpaperResponse.status}`);
+    }
+    const [floorRaw, wallRaw, wallpaperRaw] = await Promise.all([
+      floorResponse.json(), wallResponse.json(), wallpaperResponse.json(),
+    ]);
+    state.items = [
+      ...floorRaw.map(normalizeFloor),
+      ...wallRaw.map(normalizeWall),
+      ...wallpaperRaw.map(normalizeWallpaper),
+    ];
     const colorSelect = document.querySelector("#color-filter");
     [...new Set(state.items.filter((item) => state.saved.has(item.id)).map((item) => item.colorFamily))]
       .sort((a, b) => a.localeCompare(b, "ru"))
